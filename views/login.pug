@@ -1,0 +1,26 @@
+doctype html
+html
+    head
+        meta(name='viewport', content='width=device-width')
+        link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css")
+        title= subject
+    body
+        include  partials/_nav
+        div.container.mt-2
+          div: form(method='post', class='form-vertical', action='/api/login')
+            fieldset
+              legend: strong.text-info Login page
+
+              if message.error
+                div.alert.alert-danger #{message.error}
+
+              div.form-group
+                label Email:
+                input.form-control(name='Email', autofocus)
+
+              div.form-group
+                label Password:
+                input.form-control(name='Password', type='password')
+
+              div.form-actions
+                input.btn.btn-primary(type='submit', value='Login')
