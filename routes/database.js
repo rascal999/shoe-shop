@@ -50,7 +50,7 @@ let db = new sqlite3.Database(DBSOURCE, (err) => {
       } else{
         // Table just created, creating some rows
         var insert = 'INSERT INTO Cards (Username, PAN, Expiry, CVV, DateCreated) VALUES (?,?,?,?,?)'
-        db.run(insert, ["user1", "376100000000004", "12/25", "123", Date('now')])
+        //db.run(insert, ["user1", "376100000000004", "12/25", "123", Date('now')])
         db.run(insert, ["user2", "341111597241002", "02/28", "456", Date('now')])
         db.run(insert, ["user3", "6333000023456788", "11/23", "778", Date('now')])
         db.run(insert, ["user4", "5413330089099049", "01/26", "610", Date('now')])

@@ -210,7 +210,7 @@ app.post("/api/card/add", async (req, res) => {
           return;
         }
 
-        return res.redirect('/index');
+        return res.redirect('/billing');
       });
     } catch (err) {
       console.log(err);

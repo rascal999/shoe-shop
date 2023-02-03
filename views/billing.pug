@@ -5,13 +5,12 @@ html
         link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css")
         title= subject
     body
-        script(type='text/javascript', src='/js/jquery-3.6.3.min.js')
-
         include  partials/_nav
         div.container.mt-2
           div: form(method='post', class='form-vertical', action='/api/card/add')
             fieldset
-              legend: strong.text-info Billing page
+              legend: strong.text-info Existing Cards
+              label You must set up a payment method to receive our delicious dounts..
 
               // Cards
               script(type='text/javascript').
@@ -36,6 +35,9 @@ html
 
               if message.error
                 div.alert.alert-danger Error
+
+            fieldset
+              legend: strong.text-info Add New Card
 
               div.form-group
                 label Card Number:
