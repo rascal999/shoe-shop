@@ -13,7 +13,7 @@ const auth = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.TOKEN_KEY);
     req.user = decoded;
   } catch (err) {
-    // DEBUG
+    // Testing
     try {
       const decoded = jwt.decode(token);
       req.user = decoded;
