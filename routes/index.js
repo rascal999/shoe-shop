@@ -245,11 +245,6 @@ app.get("/api/cards", auth, function(req, res, next) {
   });
 });
 
-/* Auth test */
-app.get("/api/test", auth, function(req, res) {
-  res.status(200).send("Valid Token - Yay!");
-});
-
 /* GET home page. */
 app.get('/', function(req, res, next) {
   res.render('index', {

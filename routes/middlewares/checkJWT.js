@@ -10,10 +10,16 @@ const checkJWT = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.TOKEN_KEY);
     req.user = decoded;
-    //console.log(req.user);
   } catch (err) {
-    // Do nothing
+    // DEBUG
+    try {
+      const decoded = jwt.decode(token);
+      req.user = decoded;
+    } catch (err1) {
+      // Do nothing
+    }
   }
+
   next();
 }
 

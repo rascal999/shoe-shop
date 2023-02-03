@@ -9,24 +9,33 @@ html
         div.container.mt-2
             header
                 h1 Report
-                p This lab emphasises the importance of deprecating old API endpoints and ensuring that developers are aware of and follow standards (in this case, the PCI-DSS).
+                p This lab emphasises the importance of deprecating old API endpoints and ensuring that developers are aware of and follow relevant standards (in this case, the PCI-DSS).
                 h2 Summary
-                p This web application contains a number of vulnerabilities, including:
+                p This web application contains a number of security vulnerabilities and standards violations, including:
                 ul
-                  li Deprecated and vulnerable endpoint #[a(href='/api/v1/cards') /api/v1/cards]
+                  li A deprecated and vulnerable endpoint #[a(href='/api/v1/cards') /api/v1/cards]
                   ul
                     li Returns full unmasked PAN
-                    li Returns CVV (which shouldn't be stored in accordance with PCI DSS requirements)
+                    ul
+                      li Unmasked PAN should not be returned to customers in accordance with #[a(href='https://usa.visa.com/content/dam/VCOM/regional/na/us/partner-with-us/documents/8-digit-bin-pci-security-requirements-visa-position-paper.pdf') PCI DSS Requirement 3.3].
+                    li Returns CVV
+                    ul
+                      li CVV shouldn't be stored in accordance with PCI DSS requirements after authorisation
                   li PAN not encrypted
                   ul
-                    li Demonstrate via SQLi?
+                    li While not demonstrable via the web app itself, a cursory glance over the source code will highlight the fact that PANs are not encrypted, which is in violation of #[a(href='https://kirkpatrickprice.com/video/pci-requirement-3-4-render-pan-unreadable-anywhere-stored/') PCI DSS Requirement 3.4].
                   li Cookie is unset but probably not invalidated
+                  ul
+                    li Due to the nature of JWTs and how they are commonly implemented, logging out of an application doesn't necessarily invalidate the JWT. If the cookie can be recovered, it may still be valid
                   li JWT contains user ID
                   ul
-                    li Can determine the rough number of users for the application
+                    li An identifier in the JWT can be used to estimate the number of users of the application, which could be considered commercially sensitive
                   li Autocomplete on sensitive fields
                   li Back button
             section
                 h2 Issues
                 h5 1. Sensitive endpoint exposed
                 p /api/v1/cards exposed
+            section
+                h2 Notes
+                p This is the first Express application I have written, so I suspect the code could be improved upon.
