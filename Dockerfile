@@ -1,7 +1,7 @@
 FROM node
 
 # Install jq
-RUN apt update && apt install jq
+RUN apt-get update && apt-get install jq -y
 
 WORKDIR /usr/src/app
 COPY package*.json ./

@@ -5,7 +5,7 @@ Rusty Brown's Ring Donuts shop (vulnerable lab)
 
 ```
 docker build . -t donut-shop
-docker run --rm -p 1337:3000 donut-shop
+docker run --rm --name donut-shop -p 1337:3000 donut-shop
 ```
 
 ## Viewing
