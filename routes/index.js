@@ -18,6 +18,13 @@ app.use(cookieParser());
 // Populate req.user if applicable
 app.use(checkJWT);
 
+/* Challenge write-up */
+app.get('/report', (req, res) => {
+  res.render('report', {
+    user: req.user
+  });
+});
+
 /* LOGIN / LOGOUT / BILLING */
 app.get('/index', (req, res) => {
   res.render('index', {

@@ -1,0 +1,32 @@
+doctype html
+html
+    head
+        meta(name='viewport', content='width=device-width')
+        link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css")
+        title= subject
+    body
+        include  partials/_nav
+        div.container.mt-2
+            header
+                h1 Report
+                p This lab emphasises the importance of deprecating old API endpoints and ensuring that developers are aware of and follow standards (in this case, the PCI-DSS).
+                h2 Summary
+                p This web application contains a number of vulnerabilities, including:
+                ul
+                  li Deprecated and vulnerable endpoint #[a(href='/api/v1/cards') /api/v1/cards]
+                  ul
+                    li Returns full unmasked PAN
+                    li Returns CVV (which shouldn't be stored in accordance with PCI DSS requirements)
+                  li PAN not encrypted
+                  ul
+                    li Demonstrate via SQLi?
+                  li Cookie is unset but probably not invalidated
+                  li JWT contains user ID
+                  ul
+                    li Can determine the rough number of users for the application
+                  li Autocomplete on sensitive fields
+                  li Back button
+            section
+                h2 Issues
+                h5 1. Sensitive endpoint exposed
+                p /api/v1/cards exposed
