@@ -3,27 +3,29 @@ require("dotenv").config(); // Get environment variables from .env file(s)
 const cookieParser = require('cookie-parser');
 const express = require('express'); // Using the express framework
 const app = express();
-const middleware = require("./middleware");
 const DBSOURCE = "usersdb.sqlite";
 
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 var db = require("./database.js")
 
+const auth = require("./middlewares/auth");
+const checkJWT = require("./middlewares/checkJWT");
+
 app.use(express.static('public'))
 app.use(cookieParser());
 
 // Populate req.user if applicable
-//app.use(middleware.checkToken);
+app.use(checkJWT);
 
 /* LOGIN / LOGOUT / BILLING */
-/*app.get('/index', (req, res) => {
+app.get('/index', (req, res) => {
   res.render('index', {
     user: req.user
   });
-});*/
+});
 
-/*app.get('/login', (req, res) => {
+app.get('/login', (req, res) => {
   res.render('login', {
     user: req.user,
     message: { },
@@ -35,20 +37,67 @@ app.get('/logout', (req, res) => {
   res.render('index', {
     message: { },
   });
-});*/
+});
 
 /* BILLING */
-/*app.get('/billing', [middleware.verifyToken, middleware.getCards], function(req, res) {
+/* REMOVE after refactor */
+app.get('/api/v1/cards', auth, (req, res) => {
+  /* Fetch cards */
+  let card = [];
+
+  var sql = "SELECT * FROM Cards WHERE Username = ?";
+  db.all(sql, req.user['username'], function(err, rows) {
+    if (err){
+      //res.status(400).json({"error": err.message})
+      //return;
+    }
+
+    rows.forEach(function (row) {
+      card.push(row);
+    })
+
+    res.json({
+        "message":"success",
+        "data":rows
+    })
+  });
+});
+
+app.get('/api/v2/cards', auth, (req, res) => {
+  /* Fetch cards */
+  let card = [];
+
+  var sql = "SELECT PAN,Expiry FROM Cards WHERE Username = ?";
+  db.all(sql, req.user['username'], function(err, rows) {
+    if (err){
+      //res.status(400).json({"error": err.message})
+      //return;
+    }
+
+    rows.forEach(function (row) {
+      pan_mask = row['PAN'].substring(12);
+      row['PAN'] = "************" + pan_mask;
+      card.push(row);
+    })
+
+    res.json({
+        "message":"success",
+        "data":rows
+    })
+  });
+});
+
+app.get('/billing', auth, (req, res) => {
+  /* Display */
   res.render('billing', {
     user: req.user,
-    cards: req.cards,
     message: { },
   });
-});*/
+});
 
 /* API/USERS */
-/*app.get("/api/users", middleware.verifyToken, function(req, res, next) {
-  var sql = "select * from Users"
+app.get("/api/users", auth, function(req, res, next) {
+  var sql = "SELECT * FROM Users"
   var params = []
   db.all(sql, params, (err, rows) => {
     if (err) {
@@ -60,10 +109,10 @@ app.get('/logout', (req, res) => {
         "data":rows
     })
   });
-});*/
+});
 
-/*app.get("/api/user/:id", middleware.verifyToken, function(req, res, next) {
-  var sql = "select * from Users where id = ?"
+app.get("/api/user/:id", auth, function(req, res, next) {
+  var sql = "SELECT * FROM Users WHERE id = ?"
   var params = [req.params.id]
   db.get(sql, params, (err, row) => {
     if (err) {
@@ -139,10 +188,10 @@ app.post("/api/login", async (req, res) => {
     } catch (err) {
       console.log(err);
     }
-});*/
+});
 
 /* CARD */
-/*app.post("/api/card/add", async (req, res) => {
+app.post("/api/card/add", async (req, res) => {
   try {
     const { CardNumber, Expiry, CVV } = req.body;
       // Email and Password in request?
@@ -168,10 +217,10 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
-app.get("/api/cards", middleware.verifyToken, function(req, res, next) {
+app.get("/api/cards", auth, function(req, res, next) {
   let card = [];
 
-  var sql = "select * from Cards WHERE Username = ?";
+  var sql = "SELECT * FROM Cards WHERE Username = ?";
   db.all(sql, req.user['username'], function(err, rows) {
     if (err){
       res.status(400).json({"error": err.message})
@@ -187,16 +236,18 @@ app.get("/api/cards", middleware.verifyToken, function(req, res, next) {
         "data":rows
     })
   });
-});*/
+});
 
 /* Auth test */
-app.get("/api/test", [middleware.verifyToken], function(req, res) {
+app.get("/api/test", auth, function(req, res) {
   res.status(200).send("Valid Token - Yay!");
 });
 
 /* GET home page. */
 app.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express', user: req.user });
+  res.render('index', {
+    user: req.user
+  });
 });
 
 app.get('/hello', (req, res) => {

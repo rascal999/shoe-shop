@@ -5,6 +5,8 @@ html
         link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css")
         title= subject
     body
+        script(type='text/javascript', src='/js/jquery-3.6.3.min.js')
+
         include  partials/_nav
         div.container.mt-2
           div: form(method='post', class='form-vertical', action='/api/card/add')
@@ -12,8 +14,25 @@ html
               legend: strong.text-info Billing page
 
               // Cards
-              each key in cards
-                p !{key.action} !{key.result}
+              script(type='text/javascript').
+                $.ajax({
+                  url: "/api/v2/cards",
+                }).done(function(data) {
+                  var cards = data
+                  $("#cards").append(JSON.stringify(data))
+
+                  $(cards.data).each(function(index){
+                    $(list).append('Card Number: ' + this.PAN + '<br />Expiry: ' + this.Expiry + '<p>');
+                  });
+                });
+
+              //#cards
+              #list
+
+              //each key in cards.data
+              //  li Card Number: !{key.PAN}
+              //  li Expiry Date: !{key.Expiry}
+              //  p
 
               if message.error
                 div.alert.alert-danger Error

@@ -2,3 +2,6 @@ Autocomplete everywhere
 Back button
 Cookie unset but probably not invalidated
 - Could increase TTL and raise as issue?
+- /api/v1/cards
+  - Returns full unmasked PAN
+  - Returns CVV (which shouldn't be stored)
