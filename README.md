@@ -22,6 +22,14 @@ user4@example.com / user4
 user5@example.com / user5
 ```
 
+## Exploiting
+
+Run the following command to execute the `exploit.sh` script in the container:
+
+```
+docker exec `docker ps -aqf "name=donut-shop"` /usr/src/app/exploit.sh
+```
+
 ## Report
 
 Visit `http://localhost:1337/report` for the write-up.
