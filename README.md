@@ -10,7 +10,7 @@ docker run --rm -p 1337:3000 donut-shop
 
 ## Viewing
 
-Visit `http://localhost:1337/`
+Visit http://localhost:1337/
 
 Valid credentials are:
 
