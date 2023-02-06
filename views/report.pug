@@ -1,6 +1,7 @@
 doctype html
 html
     head
+        title RB's Shoe Shop - Report
         meta(name='viewport', content='width=device-width')
         link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css")
         title= subject
@@ -9,39 +10,115 @@ html
         div.container.mt-2
             header
                 h1 Report
-                p This lab emphasises the importance of deprecating old API endpoints, removing test/debug code, and ensuring that developers are aware of and follow relevant standards (in this case, the PCI-DSS).
-                h2 Summary
+                p This lab emphasises the importance of deprecating old API endpoints, removing debug code, and ensuring that developers are aware of and follow relevant standards (in this case, the Payment Card Industry Data Security Standard (PCI-DSS)).
+                p Vulnerabilities relating to HTTPS/TLS have not been raised in this report. The issues highlighted are not necessarily an exhaustive list of security issues affecting the target site.
+                p This is my first Express application, so I suspect I'm using anti-patterns and unconventional coding practices, which I would endeavour to correct for production ready challenges.
+
+                h2 Vulnerabilities and Compliance Issues
                 p This web application contains a number of security vulnerabilities and standards violations, including:
+
+                h5 1. Invalid JWTs (JSON Web Tokens) were accepted by the application
+                b Description
+                p It was possible to modify the JWT such that a signature was not required or could be invalid, while still being accepted by the application. The JWT could also be expired and still accepted by the application. This vulnerability could have allowed attackers to impersonate other users and retrieve sensitive information, such as card payment information.
+
+
+                b Recommendations
+                p Debug code was present in the application which decoded JWTs that were invalid, and this code should have been removed prior to go live.
+
+                p This issue highlights the importance of unit testing, because if an invalid JWT could have been mocked and tested against the application, this issue could have been identified before being pushed to production.
+
+                p Another way that this issue could have been avoided would have been to ensure that any code being pushed live was subject to peer review prior to deployment. Any debug code could have been wrapped in a function which checks the environment type (development, UAT, production etc.) prior to execution.
+
+                b References
                 ul
-                  li A deprecated and vulnerable endpoint is accessible #[a(href='/api/v1/cards') /api/v1/cards]
-                  ul
-                    li Returns full unmasked PAN
-                    ul
-                      li Unmasked PAN should not be returned to customers in accordance with #[a(href='https://usa.visa.com/content/dam/VCOM/regional/na/us/partner-with-us/documents/8-digit-bin-pci-security-requirements-visa-position-paper.pdf') PCI DSS Requirement 3.3]
-                    li Returns CVV
-                    ul
-                      li CVV shouldn't be stored in accordance with PCI DSS requirements after authorisation
-                  li PAN not encrypted
-                  ul
-                    li While not demonstrable via the web app itself, a cursory glance over the source code will highlight the fact that PANs are not encrypted, which is in violation of #[a(href='https://kirkpatrickprice.com/video/pci-requirement-3-4-render-pan-unreadable-anywhere-stored/') PCI DSS Requirement 3.4]
-                  li JWT signature can be invalid / algorithm can be set to 'none'
-                  ul
-                    li It's possible to modify the JWT such that a signature is not required. This allows attackers to impersonate other users and retrieve sensitive information, such as card payment information
-                  li JWT contains user ID
-                  ul
-                    li An identifier in the JWT can be used to estimate the number of users of the application, which could be considered commercially sensitive. Chained with the JWT signature issue highlighted above, an attacker can leverage this issue to enumerate and ultimately impersonate other users
-                  li Autocomplete on sensitive fields
-                  li Back button
-            section
-                h2 Issues
-                h5 1. A deprecated and vulnerable endpoint is accessible #[a(href='/api/v1/cards') /api/v1/cards]
-                p XXX
-                h5 2. PAN not encrypted
-                p XXX
-                h5 3. JWT signature can be invalid / algorithm can be set to 'none'
-                p XXX
-                h5 4. JWT contains user ID
-                p XXX
-            section
-                h2 Notes
-                p This is the first Express application I have written, so I suspect the code could be improved upon.
+                  li Bathla, S. (2021). Hacking JWT Tokens: The None Algorithm - Pentester Academy Blog. Medium. Retrieved from #[a(href='https://blog.pentesteracademy.com/hacking-jwt-tokens-the-none-algorithm-67c14bb15771') https://blog.pentesteracademy.com/hacking-jwt-tokens-the-none-algorithm-67c14bb15771]
+                  li JWT none algorithm supported. (2023, February 06). Retrieved from #[a(href='https://portswigger.net/kb/issues/00200901_jwt-none-algorithm-supported') https://portswigger.net/kb/issues/00200901_jwt-none-algorithm-supported]
+              
+                h5 2. Full Payment Account Number (PAN) returned by API (#[a(href='/api/v1/cards') /api/v1/cards])
+                b Description
+                p The application API returned a full PAN, which should not be displayed back to customers in accordance with #[a(href='https://usa.visa.com/content/dam/VCOM/regional/na/us/partner-with-us/documents/8-digit-bin-pci-security-requirements-visa-position-paper.pdf') PCI DSS Requirement 3.3].
+
+                b Recommendations
+                p In line with PCI DSS Requirement 3.3, PANs should be masked (with a maximum of the first six and last four digits being displayed to customers), or truncated.
+
+                p If a full PAN was returned by the API, this could be indicative of a miscommunication or misunderstanding of the requirements of the project by the developers or project managers. If an issue like this is identified in an application, it may be symptomatic of a larger issue based around communication and/or understanding of the requirements by relevant teams.
+
+                b References
+                ul
+                  li PCI Security Standards Council (2023). Payment Card Industry Data Security Standard. Retrieved from #[a(href='https://docs-prv.pcisecuritystandards.org/PCI%20DSS/Standard/PCI-DSS-v4_0.pdf') https://docs-prv.pcisecuritystandards.org/PCI%20DSS/Standard/PCI-DSS-v4_0.pdf]
+                  li PCI Security Standards Council (2023). PCI DSS Quick Reference Guide. Retrieved from #[a(href='https://listings.pcisecuritystandards.org/documents/PCI_DSS-QRG-v3_2_1.pdf') https://listings.pcisecuritystandards.org/documents/PCI_DSS-QRG-v3_2_1.pdf]
+
+                h5 3. Card Verification Value (CVV) returned by API #[a(href='/api/v1/cards') /api/v1/cards]
+                b Description
+                p The application API returned the CVV, which should not be stored after authorisation in accordance with PCI DSS requirement 3.2.
+
+                b Recommendations
+                p The application should not store the CVV after authorisation, and this endpoint should not return the CVV for cards. This functionality could reasonably lead to the organisation losing PCI accreditation, and is indicative of a poor understanding or communication of requirements.
+
+                p To mitigate this issue, developers need to understand the requirements of the application and check that Sensitive Authentication Data (SAD) is not stored after an attempted purchase.
+
+                b References
+                ul
+                  li PCI Security Standards Council (2023). PCI DSS Quick Reference Guide. Retrieved from #[a(href='https://listings.pcisecuritystandards.org/documents/PCI_DSS-QRG-v3_2_1.pdf') https://listings.pcisecuritystandards.org/documents/PCI_DSS-QRG-v3_2_1.pdf]
+
+                h5 4. Payment Account Number (PAN) was not encrypted
+                b Description
+                p While not demonstrable via the web app itself, a cursory glance over the source code will highlight the fact that PANs were not encrypted, which is in violation of #[a(href='https://kirkpatrickprice.com/video/pci-requirement-3-4-render-pan-unreadable-anywhere-stored/') PCI DSS Requirement 3.4].
+
+                b Recommendations
+                p To address this issue, PANs should be encrypted at rest to ensure compliance with PCI standards. Other mechanisms can also be deployed to adhere to relevant PCI standards, including implemmentation of a one-way hash function on the PAN, truncation, or index tokens.
+
+                p To stop unprotected PANs from being disclosed in future, locations where PANs could be disclosed (in a database or web logs, for example), could be monitored for Luhn passing card numbers.
+
+                b References
+                ul
+                  li Baykara, S. (2022). How can you make stored PAN information unreadable? - PCI DSS GUIDE. PCI DSS GUIDE. Retrieved from #[a(href='https://www.pcidssguide.com/how-can-you-make-unreadable-stored-pan-information') https://www.pcidssguide.com/how-can-you-make-unreadable-stored-pan-information]
+
+                h5 5. Incrementing user ID in session JWT
+                b Description
+                p An identifier in the JWT could be used to estimate the number of users of the application, which could be considered commercially sensitive. 
+
+                b Recommendations
+                p If the number of users of the target application was considered commercially sensitive, an incrementing integer should not be utilised in order to uniquely identify accounts. A universally unique identifier (UUID) or hash could be more appropriate, as it does not indicate how many accounts exist in the target application, and cannot be enumerated.
+
+                h5 6. Time-based username enumeration
+                b Description
+                p The login page was affected by a time-based username enumeration issue. The average response time for a non-existent user on the login HTTP POST request was ~10ms. For an existing user this increased to ~67ms.
+
+                b Recommendations
+                p The response time for valid and invalid users should be indistinguishable to mitigate this risk. This risk may be acceptable to the organisation, especially if mitigations are in place to prevent password stuffing or brute force attacks against accounts.
+
+                b References
+                ul
+                  li Time based username enumeration | Pen Test Partners. (2023, February 05). Retrieved from #[a(href='https://www.pentestpartners.com/security-blog/time-based-username-enumeration') https://www.pentestpartners.com/security-blog/time-based-username-enumeration]
+
+                h5 7. Cross-Site Request Forgery (CSRF)
+                b Description
+                p The add card functionality provided by the site was affected by a CSRF vulnerability. If this issue was exploited, an attacker may be able to add superfluous cards to a target account.
+
+                b Recommendations
+                p Traditionally, a CSRF token was used to mitigate this issue. A CSRF token could be sent as a key value in the form data, in a request header, or as a cookie. By whichever means the CSRF token was transmitted, the server would set and subsequently check this value to ensure that it was present and correct. If it was not present and correct, the form data would not be accepted by the target application.
+
+                p Alternatively, the session cookie could be set with the SameSite attribute set to Strict. This attribute instructs the browser to only send cookies to the target application in a first party context. Cookies set with this attribute will not be sent by third party websites which initiate the request.
+
+                p In absence of the session cookie in a request, any attempted actions performed as a result of the third party iniatiated request should not be fullfilled in the context of an authenticated user of the application.
+
+                b References
+                ul
+                  li SameSite cookies - HTTP | MDN. (2023, February 04). Retrieved from #[a(href='https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite') https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite]
+                  li Cross-Site Request Forgery Prevention - OWASP Cheat Sheet Series. (2023, February 05). Retrieved from #[a(href='https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html') https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html]
+
+                h5 8. Clickjacking
+                b Description
+                p The target website was affected by clickjacking, an attack that allows attackers to entice victims to perform actions on a seamingly unrelated website, which results in actions being performed on the target website.
+
+                p An example of this type of attack could be a malicious website which includes an invisible iframe which is overlayed. When the victim interacts with the attacker's website, they believe they are performing actions on the malicious website, and not the target website.
+
+                p An attacker could entice the user to perform actions on the target site without the victim being aware. By strategically placing elements on the page, the mouse clicks and other events performed by the user could be passed to the target application. This could lead to an attacker compromising the target user account by making them change their password or associating other accounts with the victims account.
+
+                b Recommendations
+                p Anti-clickjacking mechanisms can be implemented via specific framing headers (for example, X-Frame-Options) and/or a suitable Content Security Policy (specifically, by using the frame-ancestors directive). Using the SameSite=Strict attribute in the session cookie will also mitigate against this risk, because actions performed by the user as a result of the clickjacking attack will not be performed in the context of the authenticated user on the target application.
+
+                b References
+                ul
+                  li Clickjacking | OWASP Foundation. (2023, February 06). Retrieved from #[a(href='https://owasp.org/www-community/attacks/Clickjacking') https://owasp.org/www-community/attacks/Clickjacking]
