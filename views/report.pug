@@ -13,6 +13,7 @@ html
                 p This lab emphasises the importance of deprecating old API endpoints, removing debug code, and ensuring that developers are aware of and follow relevant standards (in this case, the Payment Card Industry Data Security Standard (PCI-DSS)).
                 p Vulnerabilities relating to HTTPS/TLS have not been raised in this report. The issues highlighted are not necessarily an exhaustive list of security issues affecting the target site.
                 p This is my first Express application, so I suspect I'm using anti-patterns and unconventional coding practices, which I would endeavour to correct for production ready challenges.
+                p I have other vulnerable labs available at #[a(href='https://github.com/rascal999/vulnerable-labs') vulnerable-labs].
 
                 h2 Vulnerabilities and Compliance Issues
                 p This web application contains a number of security vulnerabilities and standards violations, including:
@@ -23,7 +24,7 @@ html
 
 
                 b Recommendations
-                p Debug code was present in the application which decoded JWTs that were invalid, and this code should have been removed prior to go live.
+                p Debug code was present in the application which decoded JWTs that were invalid, and this code should have been removed prior to go live. The affected file was #[b routes/middlewares/auth.js:16].
 
                 p This issue highlights the importance of unit testing, because if an invalid JWT could have been mocked and tested against the application, this issue could have been identified before being pushed to production.
 
@@ -36,7 +37,7 @@ html
               
                 h5 2. Full Payment Account Number (PAN) returned by API (#[a(href='/api/v1/cards') /api/v1/cards])
                 b Description
-                p The application API returned a full PAN, which should not be displayed back to customers in accordance with #[a(href='https://usa.visa.com/content/dam/VCOM/regional/na/us/partner-with-us/documents/8-digit-bin-pci-security-requirements-visa-position-paper.pdf') PCI DSS Requirement 3.3].
+                p The application API returned a full PAN, which should not be displayed back to customers in accordance with #[a(href='https://usa.visa.com/content/dam/VCOM/regional/na/us/partner-with-us/documents/8-digit-bin-pci-security-requirements-visa-position-paper.pdf') PCI DSS Requirement 3.3]. The code can be found in #[b routes/index.js:51].
 
                 b Recommendations
                 p In line with PCI DSS Requirement 3.3, PANs should be masked (with a maximum of the first six and last four digits being displayed to customers), or truncated.
@@ -50,7 +51,7 @@ html
 
                 h5 3. Card Verification Value (CVV) returned by API #[a(href='/api/v1/cards') /api/v1/cards]
                 b Description
-                p The application API returned the CVV, which should not be stored after authorisation in accordance with PCI DSS requirement 3.2.
+                p The application API returned the CVV, which should not be stored after authorisation in accordance with PCI DSS requirement 3.2. The code can be found in #[b routes/index.js:51].
 
                 b Recommendations
                 p The application should not store the CVV after authorisation, and this endpoint should not return the CVV for cards. This functionality could reasonably lead to the organisation losing PCI accreditation, and is indicative of a poor understanding or communication of requirements.
@@ -63,7 +64,7 @@ html
 
                 h5 4. Payment Account Number (PAN) was not encrypted
                 b Description
-                p While not demonstrable via the web app itself, a cursory glance over the source code will highlight the fact that PANs were not encrypted, which is in violation of #[a(href='https://kirkpatrickprice.com/video/pci-requirement-3-4-render-pan-unreadable-anywhere-stored/') PCI DSS Requirement 3.4].
+                p While not demonstrable via the web app itself, a cursory glance over the source code will highlight the fact that PANs were not encrypted, which is in violation of #[a(href='https://kirkpatrickprice.com/video/pci-requirement-3-4-render-pan-unreadable-anywhere-stored/') PCI DSS Requirement 3.4]. This issue can be seen in the SQLite database (db.sqlite), and in the code responsible for adding new cards to an account (#[b routes/index.js:201]). No attempt is made to encrypt the CVV parameter prior to the INSERT.
 
                 b Recommendations
                 p To address this issue, PANs should be encrypted at rest to ensure compliance with PCI standards. Other mechanisms can also be deployed to adhere to relevant PCI standards, including implemmentation of a one-way hash function on the PAN, truncation, or index tokens.
@@ -76,7 +77,7 @@ html
 
                 h5 5. Incrementing user ID in session JWT
                 b Description
-                p An identifier in the JWT could be used to estimate the number of users of the application, which could be considered commercially sensitive. 
+                p An identifier in the JWT could be used to estimate the number of users of the application, which could be considered commercially sensitive. The ID is added to the JWT in #[b routes/index.js:176].
 
                 b Recommendations
                 p If the number of users of the target application was considered commercially sensitive, an incrementing integer should not be utilised in order to uniquely identify accounts. A universally unique identifier (UUID) or hash could be more appropriate, as it does not indicate how many accounts exist in the target application, and cannot be enumerated.
@@ -84,6 +85,8 @@ html
                 h5 6. Time-based username enumeration
                 b Description
                 p The login page was affected by a time-based username enumeration issue. The average response time for a non-existent user on the login HTTP POST request was ~10ms. For an existing user this increased to ~67ms.
+
+                p This issue exists because different code branches are taken depending on whether the user exists or not. If the user exists, a bcrypt function is executed, while this is not the case if the user doesn't exist, contributing to the variance in execution times. The function responsible for logging in a user is available at #[b routes/index.js:143].
 
                 b Recommendations
                 p The response time for valid and invalid users should be indistinguishable to mitigate this risk. This risk may be acceptable to the organisation, especially if mitigations are in place to prevent password stuffing or brute force attacks against accounts.
@@ -103,6 +106,8 @@ html
 
                 p In absence of the session cookie in a request, any attempted actions performed as a result of the third party iniatiated request should not be fullfilled in the context of an authenticated user of the application.
 
+                p To address this issue in Express, the developer should use a CSRF middleware, of which examples are available at #[a(href='https://www.npmjs.com/search?q=express%20csrf') https://www.npmjs.com/search?q=express%20csrf].
+
                 b References
                 ul
                   li SameSite cookies - HTTP | MDN. (2023, February 04). Retrieved from #[a(href='https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite') https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite]
@@ -118,6 +123,8 @@ html
 
                 b Recommendations
                 p Anti-clickjacking mechanisms can be implemented via specific framing headers (for example, X-Frame-Options) and/or a suitable Content Security Policy (specifically, by using the frame-ancestors directive). Using the SameSite=Strict attribute in the session cookie will also mitigate against this risk, because actions performed by the user as a result of the clickjacking attack will not be performed in the context of the authenticated user on the target application.
+
+                p For Express, a CSP middleware could be utilised (such as #[a(href='https://www.npmjs.com/package/express-csp-header') https://www.npmjs.com/package/express-csp-header]) to address this issue.
 
                 b References
                 ul
