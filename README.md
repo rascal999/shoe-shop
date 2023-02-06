@@ -1,11 +1,11 @@
-# donut-shop
-Rusty Brown's Ring Donuts shop (vulnerable lab)
+# shoe-shop
+Rusty Brown's Shoe Shop (vulnerable lab)
 
 ## Building
 
 ```
-docker build . -t donut-shop
-docker run -d --rm --name donut-shop -p 1337:3000 donut-shop
+docker build . -t shoe-shop
+docker run -d --rm --name shoe-shop -p 1337:3000 shoe-shop
 ```
 
 ## Viewing
@@ -27,7 +27,7 @@ user5@example.com / user5
 Run the following command to execute the `exploit.sh` script in the container:
 
 ```
-docker exec `docker ps -aqf "name=donut-shop"` /usr/src/app/exploit.sh
+docker exec `docker ps -aqf "name=shoe-shop"` /usr/src/app/exploit.sh
 ```
 
 ## Report
