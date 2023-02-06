@@ -32,4 +32,4 @@ docker exec `docker ps -aqf "name=shoe-shop"` /usr/src/app/exploit.sh
 
 ## Report
 
-Visit http://localhost:1337/report for the write-up.
+Visit http://localhost:1337/report for the write-up or check out the PDF.
